@@ -1,0 +1,44 @@
+name: Docker and Python CI
+
+'on':
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Super-Linter v4
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Lint Python with Flake8
+        uses: super-linter/super-linter@v4
+        env:
+          VALIDATE_ALL_CODEBASE: 'true'
+          VALIDATE_PYTHON_FLAKE8: 'true'
+          DEFAULT_BRANCH: main
+
+  docker:
+    name: Build and test the Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build the Python image
+        run: docker build -t docker-ci-lab .
+
+      - name: Check the container output
+        run: |
+          output="$(docker run --rm docker-ci-lab)"
+          echo "$output"
+          test "$output" = "Hello from Docker!"
